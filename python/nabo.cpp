@@ -7,14 +7,14 @@
 
 using namespace boost::python;
 
-typedef Nabo::NNSearchD NNSNabo;
+typedef Nabo::NNSearchF NNSNabo;
 typedef NNSNabo::Index Index;
 typedef NNSNabo::SearchType SearchType;
 typedef NNSNabo::SearchOptionFlags SearchOptionFlags;
-typedef Eigen::Map<NNSNabo::Matrix> MappedEigenDoubleMatrix;
+typedef Eigen::Map<NNSNabo::Matrix> MappedEigenFloatMatrix;
 typedef Eigen::Map<NNSNabo::IndexMatrix> MappedEigenIndexMatrix;
 
-static const double infD = std::numeric_limits<double>::infinity();
+static const float infD = std::numeric_limits<float>::infinity();
 static const Index maxI = std::numeric_limits<Index>::max();
 
 void matrixSizeFromPythonArray(const PyObject* cloudObj, int& rowCount, int& colCount)
@@ -45,13 +45,13 @@ void checkPythonArray(const PyObject* cloudObj, const char *paramName)
 	const int nDim = PyArray_NDIM(cloudObj);
 	if (nDim != 2)
 		throw std::runtime_error(startMsg + "must be a two-dimensional array");
-	if (PyArray_TYPE(cloudObj) != NPY_FLOAT64)
-		throw std::runtime_error(startMsg + "must hold doubles");
+	if (PyArray_TYPE(cloudObj) != NPY_FLOAT32)
+		throw std::runtime_error(startMsg + "must hold floats32");
 	if (!PyArray_CHKFLAGS(cloudObj, NPY_C_CONTIGUOUS) && !PyArray_CHKFLAGS(cloudObj, NPY_F_CONTIGUOUS))
 		throw std::runtime_error(startMsg + "must be a continuous array");
 }
 
-MappedEigenDoubleMatrix* eigenFromBoostPython(const object cloudIn, const char *paramName)
+MappedEigenFloatMatrix* eigenFromBoostPython(const object cloudIn, const char *paramName)
 {
 	int dimCount, pointCount;
 	const PyObject *cloudObj(cloudIn.ptr());
@@ -59,9 +59,9 @@ MappedEigenDoubleMatrix* eigenFromBoostPython(const object cloudIn, const char *
 	checkPythonArray(cloudObj, paramName);
 	
 	matrixSizeFromPythonArray(cloudObj, dimCount, pointCount);
-	double* cloudData(reinterpret_cast<double*>(PyArray_DATA(cloudObj)));
+	float* cloudData(reinterpret_cast<float*>(PyArray_DATA(cloudObj)));
 	
-	return new MappedEigenDoubleMatrix(cloudData, dimCount, pointCount);
+	return new MappedEigenFloatMatrix(cloudData, dimCount, pointCount);
 }
 
 void eigenFromBoostPython(NNSNabo::Matrix& cloudOut, const object cloudIn, const char *paramName)
@@ -74,7 +74,7 @@ void eigenFromBoostPython(NNSNabo::Matrix& cloudOut, const object cloudIn, const
 	matrixSizeFromPythonArray(cloudObj, dimCount, pointCount);
 	cloudOut.resize(dimCount, pointCount);
 	
-	memcpy(cloudOut.data(), PyArray_DATA(cloudObj), pointCount*dimCount*sizeof(double));
+	memcpy(cloudOut.data(), PyArray_DATA(cloudObj), pointCount*dimCount*sizeof(float));
 }
 
 class NearestNeighbourSearch
@@ -113,10 +113,10 @@ public:
 		delete nns;
 	}
 	
-	tuple knn(const object query, const Index k = 1, const double epsilon = 0, const unsigned optionFlags = 0, const double maxRadius = infD)
+	tuple knn(const object query, const Index k = 1, const float epsilon = 0, const unsigned optionFlags = 0, const float maxRadius = infD)
 	{
 		// map query and create output matrices
-		MappedEigenDoubleMatrix* mappedQuery(eigenFromBoostPython(query, "query"));
+		MappedEigenFloatMatrix* mappedQuery(eigenFromBoostPython(query, "query"));
 		NNSNabo::IndexMatrix indexMatrix(k, mappedQuery->cols());
 		NNSNabo::Matrix dists2Matrix(k, mappedQuery->cols());
 		
@@ -126,8 +126,8 @@ public:
 		// build resulting python types
 		npy_intp retDims[2] = { mappedQuery->cols(), k };
 		const int dataCount(k * mappedQuery->cols());
-		PyObject* dists2 = PyArray_EMPTY(2, retDims, PyArray_DOUBLE, PyArray_ISFORTRAN(query.ptr()));
-		memcpy(PyArray_DATA(dists2), dists2Matrix.data(), dataCount*sizeof(double));
+		PyObject* dists2 = PyArray_EMPTY(2, retDims, PyArray_FLOAT, PyArray_ISFORTRAN(query.ptr()));
+		memcpy(PyArray_DATA(dists2), dists2Matrix.data(), dataCount*sizeof(float));
 		PyObject* indices = PyArray_EMPTY(2, retDims, PyArray_INT, PyArray_ISFORTRAN(query.ptr()));
 		memcpy(PyArray_DATA(indices), indexMatrix.data(), dataCount*sizeof(int));
 		delete mappedQuery;

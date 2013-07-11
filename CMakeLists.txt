@@ -38,6 +38,7 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 	/usr/local/include/eigen2
 	/usr/local/include/eigen
 	/usr/include/eigen3
+	/usr/include/eigen3/unsupported
 	/usr/include/eigen2
 	/usr/include/eigen
 	/opt/ros/diamondback/stacks/geometry/eigen/include
