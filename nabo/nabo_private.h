@@ -71,6 +71,24 @@ namespace Nabo
 		return (v0 - v1).squaredNorm();
 	}
 
+	//! L1norm
+	template<typename T, typename A, typename B>
+	inline T dist1(const A& v0, const B& v1)
+	{
+	  //return (v0 - v1).abs().sum();
+	  T dist(0);
+	  for (int j=0; j<v0.cols(); ++j) {
+	    for (int i=0; i<v0.rows(); ++i) {
+	      T diff = v0(i,j) - v1(i,j);
+	      if (diff > 0)
+		dist += diff;
+	      else
+		dist -= diff;
+	    }
+	  }
+	  return dist;   
+	}
+
 	//! Brute-force nearest neighbour
 	template<typename T>
 	struct BruteForceSearch: public NearestNeighbourSearch<T>

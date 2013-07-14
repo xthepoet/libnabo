@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*!	\file brute_force_cpu.cpp
 	\brief brute force search, cpu implementation
-	\ingroup private
+\ingroup private
 */
 
 namespace Nabo
@@ -86,7 +86,10 @@ namespace Nabo
 			heap.reset();
 			for (int i = 0; i < this->cloud.cols(); ++i)
 			{
-				const T dist(dist2<T>(this->cloud.block(0,i,dim,1), q));
+			  //const T dist(dist2<T>(this->cloud.block(0,i,dim,1), q)); // Euclidean
+			  const T dist(dist1<T>(this->cloud.block(0,i,dim,1), q)); //L1 norm
+
+
 				if ((dist <= maxRadius2) &&
 					(dist < heap.headValue()) &&
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))

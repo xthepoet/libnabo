@@ -372,7 +372,11 @@ namespace Nabo
 				for (int i = 0; i < this->dim; ++i)
 				{
 					const T diff(*qPtr - *dPtr);
-					dist += diff*diff;
+					//dist += diff*diff; // L2 Euclidean distance
+					if (diff > 0) 
+					  { dist += diff; }  // L1 norm 
+					else 
+					  { dist -= diff; }
 					qPtr++; dPtr++;
 				}
 				if ((dist <= maxRadius2) &&

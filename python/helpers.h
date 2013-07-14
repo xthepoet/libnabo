@@ -41,7 +41,7 @@ using namespace std;
 using namespace Nabo;
 
 template<typename T>
-int save(const char *fileName, const typename NearestNeighbourSearch<T>::Matrix& d)
+bool save(const char *fileName, const typename NearestNeighbourSearch<T>::Matrix& d)
 {
 	ofstream ofs(fileName);
 	if (ofs)
